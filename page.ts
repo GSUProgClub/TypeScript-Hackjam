@@ -3,7 +3,7 @@ const input = document.querySelector<HTMLInputElement>(".top-banner input");
 const msg = document.querySelector<HTMLOutputElement>(".top-banner .msg");
 const list = document.querySelector<HTMLUListElement>(".ajax-section .cities");
 
-const apiKey = "652b045515053ca72a5e9f84c89419ab";
+const apiKey = "<insert API key here>";
 
 form.addEventListener("submit", e => {
     e.preventDefault();
@@ -47,31 +47,64 @@ form.addEventListener("submit", e => {
 
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${inputVal}&appid=${apiKey}&units=metric`;
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            const { main, name, sys, weather } = data;
-            const icon = `https://openweathermap.org/img/wn/${weather[0]["icon"]}@2x.png`;
-            const li = document.createElement("li");
-            li.classList.add("city");
-            li.innerHTML = `
-                <h2 class ="city-name" data-name"${name}, ${sys.country}">
-                    <span>${name}</span>
-                    <sup>${sys.country}</sup>
+    getData(url)
+        .then(
+            data => {
+                const icon = `https://openweathermap.org/img/wn/${data.weather[0]["icon"]}@2x.png`;
+                const li = document.createElement("li");
+                li.classList.add("city");
+                li.innerHTML = `
+                <h2 class ="city-name" data-name"${data.name}, ${data.sys.country}">
+                    <span>${data.name}</span>
+                    <sup>${data.sys.country}</sup>
                 </h2>
-                <div class="city-temp">${Math.round(main.temp)}<sup>C</sup>
+                <div class="city-temp">${Math.round(data.main.temp)}<sup>C</sup>
                 </div>
                 <figure>
-                    <img class="city-icon" src=${icon} alt=${weather[0]["main"]}>
-                    <figcaption>${weather[0]["description"]}</figcaption>
+                    <img class="city-icon" src=${icon} alt=${data.weather[0]["main"]}>
+                    <figcaption>${data.weather[0]["description"]}</figcaption>
                 </figure>
                 `;
-            list.appendChild(li)
-        })
-        .catch(() => {
+                list.appendChild(li);
+            }
+        ).catch(() => {
             msg.textContent = "Please search for a valid city";
-        });
+    });
     msg.textContent = "";
     form.reset();
     input.focus();
 });
+
+function getData(url: String): Promise<Data> {
+    return fetch(url)
+        .then(response => response.json())
+        .then(response => {
+            return response as Data
+        })
+}
+
+export interface Data{
+    weather: {
+        id: number;
+        main: string;
+        description: string;
+        icon: string;
+    };
+    main: {
+        temp: number;
+        feels_like: number;
+        temp_min: number;
+        temp_max: number;
+        pressure: number;
+        humidity: number;
+    };
+    sys: {
+        type: number;
+        id: number;
+        message: number;
+        country: string;
+        sunrise: number;
+        sunset: number;
+    };
+    name: string;
+}
